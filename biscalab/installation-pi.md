@@ -176,8 +176,35 @@ Pour une carte destinée au FabLab, mettre directement le Wi-Fi du FabLab dans `
 
 ## 10. Tester le modèle de marche (sans matériel)
 
-Le « cerveau » du robot est un fichier ONNX (réseau de neurones entraîné en simulation).
-Il se teste sans servos ni IMU. Le télécharger dans le dossier personnel, puis lancer notre script :
+### C'est quoi, le fichier ONNX ?
+
+Le robot ne marche pas grâce à un programme écrit à la main. Il marche grâce à un
+**réseau de neurones** : une grosse formule mathématique, avec des centaines de milliers de
+nombres réglés automatiquement. Ces nombres ont été trouvés par **entraînement en simulation** :
+un ordinateur a fait tomber un canard virtuel des millions de fois, en gardant à chaque fois
+ce qui marchait un peu mieux, jusqu'à obtenir une marche stable. Antoine (le créateur du
+projet) a fait cet entraînement ; nous récupérons seulement le résultat.
+
+Ce résultat est rangé dans un fichier `.onnx`. **ONNX** (Open Neural Network Exchange) est un
+format de fichier standard pour les réseaux de neurones, un peu comme le PDF pour les documents :
+peu importe l'outil qui a servi à l'entraîner, n'importe quel programme sachant lire l'ONNX peut
+l'utiliser. Sur le Pi, c'est la bibliothèque `onnxruntime` qui fait cette lecture.
+
+Concrètement, 50 fois par seconde, le fichier ONNX fait une seule chose :
+
+- il **reçoit 101 nombres** qui décrivent la situation : inclinaison et vitesse de rotation du
+  corps (IMU), position actuelle des 14 servos, ordre du pilote (avancer, tourner…),
+  et ce qui s'est passé juste avant ;
+- il **renvoie 14 nombres** : la position que chaque servo doit viser pour le prochain instant.
+
+Il ne « réfléchit » pas et ne retient rien d'une fois sur l'autre : c'est un réflexe très
+rapide (0,3 ms sur le Pi 4B). Tout le reste du programme (lire l'IMU, lire la manette,
+envoyer les ordres aux servos) est écrit en Python classique autour de lui.
+
+### Lancer le test
+
+Le fichier ONNX se teste sans servos ni IMU : on lui envoie 101 nombres au hasard et on mesure
+le temps qu'il met à répondre. Le télécharger dans le dossier personnel, puis lancer notre script :
 
 ```
 wget -P ~ https://github.com/apirrone/Open_Duck_Mini/raw/v2/BEST_WALK_ONNX_2.onnx
