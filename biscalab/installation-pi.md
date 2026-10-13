@@ -174,6 +174,23 @@ sudo nmcli connection add type wifi con-name biscalab-wifi ifname wlan0 ssid 'NO
 Pour une carte destinée au FabLab, mettre directement le Wi-Fi du FabLab dans `custom.toml`
 (étape 3), et ajouter les réseaux personnels ensuite avec cette commande.
 
+## 10. Tester le modèle de marche (sans matériel)
+
+Le « cerveau » du robot est un fichier ONNX (réseau de neurones entraîné en simulation).
+Il se teste sans servos ni IMU. Le télécharger dans le dossier personnel, puis lancer notre script :
+
+```
+wget -P ~ https://github.com/apirrone/Open_Duck_Mini/raw/v2/BEST_WALK_ONNX_2.onnx
+python ~/Open_Duck_Mini_Runtime_Fablab/biscalab/test_onnx.py ~/BEST_WALK_ONNX_2.onnx
+```
+
+- Le script lit la taille d'entrée attendue par le modèle (101 valeurs), fait 1000 calculs
+  et affiche le temps moyen. La boucle de marche tourne à 50 Hz : il faut rester bien sous 20 ms.
+- Résultat du 13/10/2026 sur le Pi 4B : **0,31 ms** par calcul, sortie de 14 valeurs (une par servo).
+- Le test intégré au fichier `onnx_infer.py` du Runtime d'origine **ne marche pas** avec ce modèle
+  (il envoie 47 valeurs au lieu de 101) : utiliser `biscalab/test_onnx.py`.
+- Le fichier `.onnx` ne va pas dans le dépôt : il se télécharge à la demande.
+
 ## Reste à faire quand le matériel sera là
 
 - **Contrôleur de servos (USB-série)** : règle de latence, d'après le README d'origine.
